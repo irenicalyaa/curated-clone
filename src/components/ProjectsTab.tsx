@@ -1,31 +1,18 @@
-import { ExternalLink, Github } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 interface Project {
   name: string;
   description: string;
   tech: string[];
   link?: string;
-  github?: string;
 }
 
 const projects: Project[] = [
   {
-    name: 'cursi.ng',
-    description: 'Personal portfolio with Discord integration and music player',
-    tech: ['React', 'TypeScript', 'Tailwind'],
-    link: 'https://cursi.ng',
-  },
-  {
-    name: 'api wrapper',
-    description: 'A lightweight wrapper for common API interactions',
-    tech: ['Node.js', 'TypeScript'],
-    github: '#',
-  },
-  {
-    name: 'discord bot',
-    description: 'Multi-purpose bot with moderation and utility features',
-    tech: ['Discord.js', 'Node.js'],
-    github: '#',
+    name: 'portfolio',
+    description: 'Personal portfolio website with modern design',
+    tech: ['Next.js', 'React'],
+    link: 'https://urb4nayl.vercel.app/',
   },
 ];
 
@@ -61,16 +48,6 @@ const ProjectsTab = () => {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <ExternalLink size={12} />
-                </a>
-              )}
-              {project.github && (
-                <a
-                  href={project.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Github size={12} />
                 </a>
               )}
             </div>
