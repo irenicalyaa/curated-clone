@@ -10,21 +10,16 @@ import albumCover from '@/assets/album-cover.jpg';
 
 const tracks = [
   {
-    title: 'Highway Patrol',
-    artist: 'Yung Lean, Bladee',
+    title: 'Shake it to the max',
+    artist: 'MOLIY',
     albumArt: albumCover,
-    duration: '3:33',
-  },
-  {
-    title: 'Obedient',
-    artist: 'Bladee',
-    albumArt: albumCover,
-    duration: '2:58',
+    duration: '3:00',
+    audioSrc: '/audio/shake-it-to-the-max.mp3',
   },
 ];
 
 // Discord User ID for Lanyard API
-const DISCORD_USER_ID = '1173788423308451841';
+const DISCORD_USER_ID = '544047377540186114';
 
 const ProfileCard = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'projects' | 'contact'>('home');
