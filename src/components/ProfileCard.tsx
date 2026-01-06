@@ -31,7 +31,7 @@ const ProfileCard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-md glass-card rounded-xl overflow-visible relative z-10"
+        className="w-full max-w-2xl glass-card rounded-xl overflow-visible relative z-10"
       >
         <Navigation
           activeTab={activeTab}
@@ -50,8 +50,8 @@ const ProfileCard = () => {
                 transition={{ duration: 0.2 }}
               >
                 {/* Header */}
-                <div className="mb-6">
-                  <h1 className="text-5xl mb-0 font-medium leading-none tracking-tight font-retro">
+                <div className="mb-4">
+                  <h1 className="text-2xl mb-0 font-medium leading-none tracking-tight font-retro">
                     alisaa
                   </h1>
                   <p className="text-muted-foreground text-xs leading-none mt-1">
