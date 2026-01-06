@@ -31,7 +31,7 @@ const ProfileCard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-2xl glass-card rounded-xl overflow-visible relative z-10"
+        className="w-full max-w-[95vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl glass-card rounded-xl overflow-visible relative z-10"
       >
         <Navigation
           activeTab={activeTab}
@@ -39,7 +39,7 @@ const ProfileCard = () => {
           onHelpClick={() => setTerminalOpen(true)}
         />
 
-        <div className="p-4">
+        <div className="p-4 sm:p-5 md:p-6">
           <AnimatePresence mode="wait">
             {activeTab === 'home' && (
               <motion.div
@@ -50,11 +50,11 @@ const ProfileCard = () => {
                 transition={{ duration: 0.2 }}
               >
                 {/* Header */}
-                <div className="mb-4">
-                  <h1 className="text-2xl mb-0 font-medium leading-none tracking-tight font-retro">
+                <div className="mb-4 sm:mb-5 md:mb-6">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl mb-0 font-medium leading-none tracking-tight font-retro">
                     alisaa
                   </h1>
-                  <p className="text-muted-foreground text-xs leading-none mt-1">
+                  <p className="text-muted-foreground text-xs sm:text-sm leading-none mt-1 sm:mt-2">
                     full stack developer specializing in modern web technologies
                   </p>
                 </div>
