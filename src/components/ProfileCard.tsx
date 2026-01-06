@@ -5,7 +5,7 @@ import DiscordStatus from './DiscordStatus';
 import MusicPlayer from './MusicPlayer';
 import ProjectsTab from './ProjectsTab';
 import ContactTab from './ContactTab';
-import HelpDialog from './HelpDialog';
+import TerminalDialog from './TerminalDialog';
 import albumCover from '@/assets/album-cover.jpg';
 
 const tracks = [
@@ -23,9 +23,12 @@ const tracks = [
   },
 ];
 
+// Discord User ID for Lanyard API
+const DISCORD_USER_ID = '1173788423308451841';
+
 const ProfileCard = () => {
   const [activeTab, setActiveTab] = useState<'home' | 'projects' | 'contact'>('home');
-  const [helpOpen, setHelpOpen] = useState(false);
+  const [terminalOpen, setTerminalOpen] = useState(false);
 
   return (
     <>
@@ -38,7 +41,7 @@ const ProfileCard = () => {
         <Navigation
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          onHelpClick={() => setHelpOpen(true)}
+          onHelpClick={() => setTerminalOpen(true)}
         />
 
         <div className="p-4">
@@ -53,8 +56,8 @@ const ProfileCard = () => {
               >
                 {/* Header */}
                 <div className="mb-6">
-                  <h1 className="text-5xl mb-0 font-medium leading-none tracking-tight">
-                    cosmin
+                  <h1 className="text-5xl mb-0 font-medium leading-none tracking-tight font-retro">
+                    alisaa
                   </h1>
                   <p className="text-muted-foreground text-xs leading-none mt-1">
                     full stack developer specializing in modern web technologies
@@ -62,12 +65,7 @@ const ProfileCard = () => {
                 </div>
 
                 {/* Discord Status */}
-                <DiscordStatus
-                  username="wirebandit"
-                  avatarUrl="https://cdn.discordapp.com/avatars/1173788423308451841/e277e8ed11b94d34594e5e6d9b0e06e4.png"
-                  discordId="1173788423308451841"
-                  status="offline"
-                />
+                <DiscordStatus userId={DISCORD_USER_ID} />
 
                 {/* Music Player */}
                 <MusicPlayer tracks={tracks} />
@@ -101,7 +99,7 @@ const ProfileCard = () => {
         </div>
       </motion.div>
 
-      <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
+      <TerminalDialog open={terminalOpen} onOpenChange={setTerminalOpen} />
     </>
   );
 };
