@@ -15,12 +15,18 @@ interface TerminalLine {
   content: string;
 }
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<TerminalLine[]>([
-    { type: 'output', content: 'Welcome to alisaa\'s terminal. Type "help" for commands.' },
+    { type: 'output', content: 'Welcome to Alyaa\'s terminal. Type "help" for commands.' },
   ]);
   const [chatMode, setChatMode] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,12 +48,12 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
     setHistory(prev => [
       ...prev,
       { type: 'input', content: `> ${message}` },
-      { type: 'output', content: '🤖 Thinking...' },
+      { type: 'output', content: '✨ Silvia is thinking...' },
     ]);
 
     try {
       const { data, error } = await supabase.functions.invoke('chatbot', {
-        body: { message },
+        body: { message, chatHistory },
       });
 
       if (error) {
@@ -58,15 +64,22 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
       const content = data?.content;
 
       if (content) {
+        // Update chat history for memory
+        setChatHistory(prev => [
+          ...prev,
+          { role: 'user', content: message },
+          { role: 'assistant', content: content },
+        ]);
+
         setHistory(prev => {
           const newHistory = [...prev];
-          newHistory[newHistory.length - 1] = { type: 'output', content: `🤖 ${content}` };
+          newHistory[newHistory.length - 1] = { type: 'output', content: `✨ Silvia: ${content}` };
           return newHistory;
         });
       } else {
         setHistory(prev => {
           const newHistory = [...prev];
-          newHistory[newHistory.length - 1] = { type: 'output', content: '🤖 No response received.' };
+          newHistory[newHistory.length - 1] = { type: 'output', content: '✨ Silvia: No response received.' };
           return newHistory;
         });
       }
@@ -113,7 +126,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
   2. about    - About me
   3. webinfo  - Website information
   4. discord  - My Discord username
-  5. chatbot  - Start AI chatbot
+  5. chatbot  - Start AI chatbot (Silvia)
   6. clear    - Clear terminal`;
         break;
       case 'server':
@@ -121,26 +134,29 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
         break;
       case 'about':
         response = `👤 About Me:
-  Name: Alya
+  Name: Alyaa (Alisaa)
   Age: 20
   Profession: Graphic Design / Web Development`;
         break;
       case 'webinfo':
         response = `🌐 Website Info:
   Inspiration: cursi.ng
-  Created by: Alya`;
+  Created by: Alyaa (Alisaa)
+  AI Assistant: Silvia`;
         break;
       case 'discord':
         response = '💬 Discord: arcticayl';
         break;
       case 'chatbot':
         setChatMode(true);
-        response = `🤖 Chatbot mode enabled!
-  Type your message to chat with AI.
-  Type "exit" or "quit" to leave chatbot mode.`;
+        response = `✨ Silvia activated!
+  Hi! I'm Silvia, Alyaa's AI assistant.
+  Ask me anything about Alyaa or the website!
+  Type "exit" or "quit" to leave chat mode.`;
         break;
       case 'clear':
         setHistory([{ type: 'output', content: 'Terminal cleared. Type "help" for commands.' }]);
+        setChatHistory([]); // Also clear chat memory
         setInput('');
         return;
       default:
@@ -171,7 +187,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
             <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
           </div>
           <span className="text-xs text-muted-foreground font-mono">
-            terminal {chatMode && '(chatbot)'}
+            terminal {chatMode && '(Silvia ✨)'}
           </span>
         </div>
         <div 
@@ -187,7 +203,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
             </div>
           ))}
           <div className="flex items-center gap-1">
-            <span className="text-primary">{chatMode ? '🤖>' : '>'}</span>
+            <span className="text-primary">{chatMode ? '✨>' : '>'}</span>
             <input
               ref={inputRef}
               type="text"
@@ -195,7 +211,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className="flex-1 bg-transparent outline-none text-foreground font-mono"
-              placeholder={chatMode ? 'ask me anything...' : 'type a command...'}
+              placeholder={chatMode ? 'ask Silvia anything...' : 'type a command...'}
               autoComplete="off"
               spellCheck={false}
               disabled={isLoading}
