@@ -63,15 +63,20 @@ const MusicPlayer = ({ tracks }: MusicPlayerProps) => {
 
   const nextTrack = () => {
     setCurrentTrack((prev) => (prev + 1) % tracks.length);
-    setIsPlaying(false);
     setCurrentTime(0);
   };
 
   const prevTrack = () => {
     setCurrentTrack((prev) => (prev - 1 + tracks.length) % tracks.length);
-    setIsPlaying(false);
     setCurrentTime(0);
   };
+
+  // Auto-play when track changes
+  useEffect(() => {
+    if (audioRef.current && isPlaying) {
+      audioRef.current.play();
+    }
+  }, [currentTrack]);
 
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
