@@ -53,6 +53,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
+          'X-Title': 'alisaa terminal',
         },
         body: JSON.stringify({
           model: 'google/gemini-2.0-flash-exp:free',
@@ -66,49 +67,25 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
               content: message,
             },
           ],
-          stream: true,
         }),
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
         throw new Error(`API error: ${response.status}`);
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No reader available');
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
 
-      const decoder = new TextDecoder();
-      let fullResponse = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n').filter(line => line.startsWith('data: '));
-
-        for (const line of lines) {
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') continue;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              fullResponse += content;
-              setHistory(prev => {
-                const newHistory = [...prev];
-                newHistory[newHistory.length - 1] = { type: 'output', content: `🤖 ${fullResponse}` };
-                return newHistory;
-              });
-            }
-          } catch {
-            // Skip invalid JSON
-          }
-        }
-      }
-
-      if (!fullResponse) {
+      if (content) {
+        setHistory(prev => {
+          const newHistory = [...prev];
+          newHistory[newHistory.length - 1] = { type: 'output', content: `🤖 ${content}` };
+          return newHistory;
+        });
+      } else {
         setHistory(prev => {
           const newHistory = [...prev];
           newHistory[newHistory.length - 1] = { type: 'output', content: '🤖 No response received.' };
@@ -119,7 +96,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
       console.error('Chat error:', error);
       setHistory(prev => {
         const newHistory = [...prev];
-        newHistory[newHistory.length - 1] = { type: 'output', content: '❌ Error: Failed to get response.' };
+        newHistory[newHistory.length - 1] = { type: 'output', content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to get response.'}` };
         return newHistory;
       });
     } finally {
