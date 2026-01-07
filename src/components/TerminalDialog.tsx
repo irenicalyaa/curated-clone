@@ -14,11 +14,15 @@ interface TerminalLine {
   content: string;
 }
 
+const OPENROUTER_API_KEY = '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';
+
 const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<TerminalLine[]>([
     { type: 'output', content: 'Welcome to alisaa\'s terminal. Type "help" for commands.' },
   ]);
+  const [chatMode, setChatMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,18 +38,128 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
     }
   }, [history]);
 
+  const sendChatMessage = async (message: string) => {
+    setIsLoading(true);
+    setHistory(prev => [
+      ...prev,
+      { type: 'input', content: `> ${message}` },
+      { type: 'output', content: '🤖 Thinking...' },
+    ]);
+
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.0-flash-exp:free',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful AI assistant in a terminal. Keep responses concise and terminal-friendly. Use simple text formatting.',
+            },
+            {
+              role: 'user',
+              content: message,
+            },
+          ],
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No reader available');
+
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.startsWith('data: '));
+
+        for (const line of lines) {
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              fullResponse += content;
+              setHistory(prev => {
+                const newHistory = [...prev];
+                newHistory[newHistory.length - 1] = { type: 'output', content: `🤖 ${fullResponse}` };
+                return newHistory;
+              });
+            }
+          } catch {
+            // Skip invalid JSON
+          }
+        }
+      }
+
+      if (!fullResponse) {
+        setHistory(prev => {
+          const newHistory = [...prev];
+          newHistory[newHistory.length - 1] = { type: 'output', content: '🤖 No response received.' };
+          return newHistory;
+        });
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      setHistory(prev => {
+        const newHistory = [...prev];
+        newHistory[newHistory.length - 1] = { type: 'output', content: '❌ Error: Failed to get response.' };
+        return newHistory;
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCommand = (cmd: string) => {
     const command = cmd.toLowerCase().trim();
+
+    // If in chat mode, handle chat commands
+    if (chatMode) {
+      if (command === 'exit' || command === 'quit') {
+        setChatMode(false);
+        setHistory(prev => [
+          ...prev,
+          { type: 'input', content: `> ${cmd}` },
+          { type: 'output', content: '👋 Exited chatbot mode. Type "help" for commands.' },
+        ]);
+        setInput('');
+        return;
+      }
+      
+      // Send message to AI
+      sendChatMessage(cmd);
+      setInput('');
+      return;
+    }
+
     let response: string;
 
     switch (command) {
       case 'help':
         response = `Available commands:
-  1. server  - Discord server invite
-  2. about   - About me
-  3. webinfo - Website information
-  4. discord - My Discord username
-  5. clear   - Clear terminal`;
+  1. server   - Discord server invite
+  2. about    - About me
+  3. webinfo  - Website information
+  4. discord  - My Discord username
+  5. chatbot  - Start AI chatbot
+  6. clear    - Clear terminal`;
         break;
       case 'server':
         response = '🎮 Discord Server: discord.gg/aerox';
@@ -64,6 +178,12 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
       case 'discord':
         response = '💬 Discord: arcticayl';
         break;
+      case 'chatbot':
+        setChatMode(true);
+        response = `🤖 Chatbot mode enabled!
+  Type your message to chat with AI.
+  Type "exit" or "quit" to leave chatbot mode.`;
+        break;
       case 'clear':
         setHistory([{ type: 'output', content: 'Terminal cleared. Type "help" for commands.' }]);
         setInput('');
@@ -81,7 +201,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && input.trim()) {
+    if (e.key === 'Enter' && input.trim() && !isLoading) {
       handleCommand(input);
     }
   };
@@ -95,7 +215,9 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
             <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
           </div>
-          <span className="text-xs text-muted-foreground font-mono">terminal</span>
+          <span className="text-xs text-muted-foreground font-mono">
+            terminal {chatMode && '(chatbot)'}
+          </span>
         </div>
         <div 
           ref={containerRef}
@@ -110,7 +232,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
             </div>
           ))}
           <div className="flex items-center gap-1">
-            <span className="text-primary">{'>'}</span>
+            <span className="text-primary">{chatMode ? '🤖>' : '>'}</span>
             <input
               ref={inputRef}
               type="text"
@@ -118,9 +240,10 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className="flex-1 bg-transparent outline-none text-foreground font-mono"
-              placeholder="type a command..."
+              placeholder={chatMode ? 'ask me anything...' : 'type a command...'}
               autoComplete="off"
               spellCheck={false}
+              disabled={isLoading}
             />
           </div>
         </div>
