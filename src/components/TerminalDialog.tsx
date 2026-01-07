@@ -14,7 +14,7 @@ interface TerminalLine {
   content: string;
 }
 
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = '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';
 
 const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
   const [input, setInput] = useState('');
@@ -56,7 +56,7 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
           'X-Title': 'alisaa terminal',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.0-flash-exp:free',
+          model: 'z-ai/glm-4.5-air:free',
           messages: [
             {
               role: 'system',
