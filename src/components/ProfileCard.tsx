@@ -16,6 +16,20 @@ const tracks = [
     duration: '3:00',
     audioSrc: '/audio/shake-it-to-the-max.mp3',
   },
+  {
+    title: 'Drowning',
+    artist: 'A Boogie Wit Da Hoodie ft. Kodak Black',
+    albumArt: albumCover,
+    duration: '3:40',
+    audioSrc: '/audio/drowning.mp3',
+  },
+  {
+    title: 'The Box',
+    artist: 'Roddy Ricch',
+    albumArt: albumCover,
+    duration: '3:16',
+    audioSrc: '/audio/the-box.mp3',
+  },
 ];
 
 // Discord User ID for Lanyard API
