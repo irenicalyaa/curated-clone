@@ -12,22 +12,22 @@ serve(async (req) => {
 
   try {
     const { message } = await req.json();
-    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
     
-    if (!OPENROUTER_API_KEY) {
-      throw new Error('OPENROUTER_API_KEY is not configured');
+    if (!GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not configured');
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    console.log('Sending request to Groq API...');
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://lovable.dev',
-        'X-Title': 'alisaa terminal chatbot',
       },
       body: JSON.stringify({
-        model: 'z-ai/glm-4.5-air:free',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -38,12 +38,13 @@ serve(async (req) => {
             content: message,
           },
         ],
+        max_tokens: 1024,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenRouter API error:', response.status, errorText);
+      console.error('Groq API error:', response.status, errorText);
       return new Response(JSON.stringify({ error: `API error: ${response.status}` }), {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -51,6 +52,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log('Groq API response received');
     const content = data.choices?.[0]?.message?.content || 'No response received.';
 
     return new Response(JSON.stringify({ content }), {
