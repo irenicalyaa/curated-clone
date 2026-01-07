@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TerminalDialogProps {
   open: boolean;
@@ -13,8 +14,6 @@ interface TerminalLine {
   type: 'input' | 'output';
   content: string;
 }
-
-const OPENROUTER_API_KEY = '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';
 
 const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
   const [input, setInput] = useState('');
@@ -47,37 +46,16 @@ const TerminalDialog = ({ open, onOpenChange }: TerminalDialogProps) => {
     ]);
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'alisaa terminal',
-        },
-        body: JSON.stringify({
-          model: 'z-ai/glm-4.5-air:free',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful AI assistant in a terminal. Keep responses concise and terminal-friendly. Use simple text formatting.',
-            },
-            {
-              role: 'user',
-              content: message,
-            },
-          ],
-        }),
+      const { data, error } = await supabase.functions.invoke('chatbot', {
+        body: { message },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error:', response.status, errorText);
-        throw new Error(`API error: ${response.status}`);
+      if (error) {
+        console.error('Chatbot error:', error);
+        throw new Error(error.message || 'Failed to get response');
       }
 
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
+      const content = data?.content;
 
       if (content) {
         setHistory(prev => {
